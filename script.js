@@ -245,7 +245,7 @@
         const pinPopupClose = document.getElementById('pin-popup-close');
 
         // DEFAULT PIN: Silakan ubah angka ini jika ingin PIN lain
-        const SECRET_PIN = "2704";
+        const SECRET_PIN = "1810";
 
         let pinAttempt = 0;
         let popupTimeout = null;
@@ -589,7 +589,30 @@ function tutupModal() {
 function initVideoMemories() {
     const videos = document.querySelectorAll('.memory-video');
 
+    function updateVideoRatio(video) {
+        if (video.videoWidth && video.videoHeight) {
+            const container = video.closest('.video-frame-container');
+            if (container) {
+                container.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+            }
+        }
+    }
+
     videos.forEach(video => {
+        // Sesuaikan rasio kontainer secara dinamis dengan rasio asli file video
+        video.addEventListener('loadedmetadata', function () {
+            updateVideoRatio(this);
+            checkOrientation();
+        });
+
+        video.addEventListener('canplay', function () {
+            updateVideoRatio(this);
+        });
+
+        if (video.readyState >= 1) {
+            updateVideoRatio(video);
+        }
+
         video.addEventListener('play', function () {
             // Hentikan video lain jika sedang menyala agar tidak bertumpuk
             videos.forEach(otherVideo => {
@@ -608,12 +631,19 @@ function initVideoMemories() {
 
         const overlays = document.querySelectorAll('.rotate-lock-overlay');
         overlays.forEach(overlay => {
+            const card = overlay.closest('.video-card-item');
+            const video = card ? card.querySelector('.memory-video') : null;
+            const isVideoPortrait = video && video.videoWidth && video.videoHeight && (video.videoWidth <= video.videoHeight);
+
+            // Jangan tampilkan overlay jika user sudah memilih tonton langsung atau jika video portrait
+            if (overlay.dataset.dismissed === 'true' || isVideoPortrait) {
+                overlay.style.display = 'none';
+                return;
+            }
+
             if (isMobile && !isLandscape) {
-                // Di HP mode vertikal: tampilkan overlay & pause video
+                // Di HP mode vertikal: tampilkan saran putar HP
                 overlay.style.display = 'flex';
-                videos.forEach(v => {
-                    if (!v.paused) v.pause();
-                });
             } else {
                 // Di mode horizontal atau di desktop: sembunyikan overlay
                 overlay.style.display = 'none';
@@ -636,11 +666,12 @@ function handleRotateAndPlay(videoId) {
     const overlay = document.getElementById('rotate-overlay-' + videoId);
     if (overlay) {
         overlay.style.display = 'none';
+        overlay.dataset.dismissed = 'true';
     }
 
     // Masuk fullscreen dan coba kunci orientasi horizontal
     if (video.requestFullscreen) {
-        video.requestFullscreen().catch(() => {});
+        video.requestFullscreen().catch(() => { });
     } else if (video.webkitRequestFullscreen) {
         video.webkitRequestFullscreen();
     } else if (video.webkitEnterFullscreen) {
@@ -649,10 +680,24 @@ function handleRotateAndPlay(videoId) {
     }
 
     if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(() => {});
+        screen.orientation.lock('landscape').catch(() => { });
     }
 
-    video.play().catch(() => {});
+    video.play().catch(() => { });
+}
+
+// Handler tombol tonton langsung tanpa putar layar
+function handlePlayDirect(videoId) {
+    const video = document.getElementById('video-memories-' + videoId);
+    if (!video) return;
+
+    const overlay = document.getElementById('rotate-overlay-' + videoId);
+    if (overlay) {
+        overlay.style.display = 'none';
+        overlay.dataset.dismissed = 'true';
+    }
+
+    video.play().catch(() => { });
 }
 
 // ==========================================

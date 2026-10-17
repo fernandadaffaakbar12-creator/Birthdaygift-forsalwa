@@ -1223,14 +1223,19 @@ body {
     overflow: hidden;
     background: #000;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: aspect-ratio 0.3s ease;
 }
 
 .memory-video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     border-radius: 12px;
+    background: #000;
 }
 
 .video-card-caption {
@@ -1336,6 +1341,16 @@ body {
 .btn-rotate-play:hover {
     transform: scale(1.05);
     background: linear-gradient(135deg, #e0007b, #ff1493);
+}
+
+.btn-play-direct {
+    background: rgba(255, 255, 255, 0.22) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
+}
+
+.btn-play-direct:hover {
+    background: rgba(255, 255, 255, 0.35) !important;
 }
 
 /* =========================================
